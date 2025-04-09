@@ -1,4 +1,6 @@
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
+import 'dart:developer' as developer;
 import 'package:petrel/src/native_channel_engine_mixin.dart';
 import 'package:petrel/src/web/web_message_engine.dart';
 import '../define.dart';
@@ -10,7 +12,8 @@ NativeChannelEngine createChannelEngine() => NativeChannelEngineWeb();
 class NativeChannelEngineWeb extends NativeChannelEngineMixin
     implements NativeChannelEngine {
   NativeChannelEngineWeb() {
-    print('register $webCallNativeHandlerName $nativeCallWebName');
+    developer.log('register $webCallNativeHandlerName $nativeCallWebName',
+        name: 'NativeChannelEngineWeb');
     register(WebMessageEngine());
 
     /// 注册Web调用App的回调方法

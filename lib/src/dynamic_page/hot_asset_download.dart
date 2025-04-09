@@ -50,6 +50,7 @@ class HotAssetDownload {
       return e.responseBody;
     }).catchError((e) {
       developer.log(e.toString(), name: 'HotAssetDownload');
+      throw Exception('热更版本信息表查询失败');
     });
     final responseJson = JSON(responseBody);
     final code = responseJson['code'].int;
