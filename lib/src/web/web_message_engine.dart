@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-// ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
-import 'dart:developer' as developer;
+
 import 'package:petrel/src/channel_data.dart';
 
 import '../call_message_channel.dart';
@@ -33,8 +32,7 @@ class WebMessageEngine extends MessageEngine {
 
   void _postMessage(String method, Map data) {
     final jsonText = json.encode(data);
-    developer.log('_postMessage method: $method, data: $jsonText',
-        name: 'WebMessageEngine');
+    print('_postMessage method: $method, data: $jsonText');
     js.context[method].callMethod("postMessage", [jsonText]);
   }
 }

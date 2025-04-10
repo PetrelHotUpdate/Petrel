@@ -5,7 +5,6 @@ import 'channel_data.dart';
 import 'message_engine.dart';
 import 'native_channel_engine.dart';
 import 'revice_message_channel.dart';
-import 'dart:developer' as developer;
 
 abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   List<ReviceMessageChannel> reviceMessageChannels = [];
@@ -25,16 +24,14 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
     if (!needReturn) return null;
     callMessageChannels.add(channel);
     final value = await channel.value;
-    developer.log('call ${channel.name}(${channel.id}): $value',
-        name: 'NativeChannelEngineMixin');
+    print('call ${channel.name}(${channel.id}): $value');
     return value as T;
   }
 
   @override
   Future<void> onReviceCallBackMessageHandler(String message) async {
     final ChannelData data = ChannelData.fromJson(json.decode(message));
-    developer.log('onWebCallNativeHandler: ${data.name}, $data',
-        name: 'NativeChannelEngineMixin');
+    print('onWebCallNativeHandler: ${data.name}, $data');
     final channels = callMessageChannels
         .where((element) => element.id == data.id && element.name == data.name)
         .toList();
@@ -47,8 +44,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   @override
   void onReviceMessageHandler(String message) async {
     final ChannelData data = ChannelData.fromJson(json.decode(message));
-    developer.log('onNativeCallWeb: ${data.name}, $data',
-        name: 'NativeChannelEngineMixin');
+    print('onNativeCallWeb: ${data.name}, $data');
     final channels = reviceMessageChannels
         .where((element) =>
             element.name == data.name && element.className == data.className)

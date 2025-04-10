@@ -13,7 +13,3 @@ export './src/message_engine.dart';
 export './src/register/petrel_register.dart';
 export './src/register/petrel_register_center.dart';
 export './src/register/petrel_register_action.dart';
-export './src/dynamic_page/run_app.dart';
-export './src/dynamic_page/dynamic_page.dart';
-export './src/dynamic_page/hot_asset_download.dart';
-export './src/dynamic_page/app_pages.dart';

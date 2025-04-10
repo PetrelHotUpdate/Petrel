@@ -2,7 +2,6 @@ import 'package:darty_json_safe/darty_json_safe.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:petrel/petrel.dart';
 
 class DynamicPage extends GetView<DynamicPageController> {
   const DynamicPage({super.key});
@@ -16,17 +15,6 @@ class DynamicPage extends GetView<DynamicPageController> {
         if (url.isEmpty) return loadingWidget;
         return InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri(url)),
-          onWebViewCreated: (webViewController) {
-            controller.webViewController = webViewController;
-            webViewController.addJavaScriptHandler(
-              handlerName: webCallNativeName,
-              callback: (data) {},
-            );
-            webViewController.addJavaScriptHandler(
-              handlerName: webCallNativeHandlerName,
-              callback: (data) {},
-            );
-          },
         );
       }),
     );
@@ -37,7 +25,6 @@ class DynamicPageController extends GetxController {
   late InAppLocalhostServer _localhostServer;
   late Widget? loadWidget;
   var loadUrl = ''.obs;
-  InAppWebViewController? webViewController;
 
   @override
   void onInit() {
