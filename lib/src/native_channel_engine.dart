@@ -1,7 +1,7 @@
+import 'package:petrel/petrel.dart';
 import './io/native_channel_engine_io.dart';
-import 'call_message_channel.dart';
-import 'message_engine.dart';
-import 'revice_message_channel.dart';
+
+final nativeChannelEngine = NativeChannelEngine();
 
 abstract class NativeChannelEngine {
   factory NativeChannelEngine() => createChannelEngine();
@@ -28,4 +28,13 @@ abstract class NativeChannelEngine {
 
   /// 移除对于APP调用的监听
   void removeListenNativeCall(ReviceMessageChannel channel);
+
+  void initEngine();
+
+  void addListenNativeCallWeb(String routeName, NativeCallWebHandler handler);
+  void removeListenNativeCallWeb(String routeName);
+
+  void addListenWebCallNativeCallBack(
+      String routeName, WebCallNativeHandler handler);
+  void removeListenWebCallNativeCallBack(String routeName);
 }

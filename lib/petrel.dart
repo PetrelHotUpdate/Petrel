@@ -8,8 +8,5 @@ export 'src/revice_message_channel.dart' show ReviceMessageChannel;
 export 'src/native_channel_engine.dart'
     if (dart.library.html) './src/web/native_channel_engine_web.dart'
     if (dart.library.io) './src/io/native_channel_engine_io.dart'
-    show NativeChannelEngine;
+    show NativeChannelEngine, nativeChannelEngine;
 export './src/message_engine.dart';
-export './src/register/petrel_register.dart';
-export './src/register/petrel_register_center.dart';
-export './src/register/petrel_register_action.dart';

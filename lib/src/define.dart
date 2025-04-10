@@ -8,6 +8,8 @@ const webCallNativeName = 'WebCallNative';
 const webCallNativeHandlerName = 'WebCallNativeHandler';
 
 typedef ReviceMessageChannelHandler<T> = Future<T?> Function(ChannelData data);
+typedef NativeCallWebHandler = void Function(ChannelData data);
+typedef WebCallNativeHandler = void Function(ChannelData data);
 
 /// 获取返回Web调用值的js代码
 String getWebCallNativeHandlerRunJavaScript(ChannelData data) {

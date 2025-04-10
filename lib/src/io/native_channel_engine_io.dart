@@ -5,5 +5,6 @@ NativeChannelEngine createChannelEngine() => NativeChannelEngineIO();
 
 class NativeChannelEngineIO extends NativeChannelEngineMixin
     implements NativeChannelEngine {
-  NativeChannelEngineIO();
+  @override
+  void initEngine() {}
 }

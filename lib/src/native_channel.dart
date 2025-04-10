@@ -9,19 +9,23 @@ abstract class NativeChannel<T> {
   /// 调用方法归属的类名 当存在同名的方法时候可以设置
   final String? className;
 
+  /// 调用的库名
+  final String? libraryName;
+
   /// 调用的参数
   final dynamic arguments;
 
   /// 接受到方法返回回调
-  final ReviceMessageChannelHandler? onHandler;
+  final ReviceMessageChannelHandler<T>? onHandler;
 
-  final Completer<T?> _completer = Completer<T?>();
-  Future<T?> get value => _completer.future;
+  final Completer<T> _completer = Completer<T>();
+  Future<T> get value => _completer.future;
 
   NativeChannel(
     this.name, {
     this.onHandler,
     this.className,
+    this.libraryName,
     this.arguments,
   });
 
