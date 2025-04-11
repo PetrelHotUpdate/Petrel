@@ -21,7 +21,10 @@ abstract class NativeChannelEngine {
   /// 接受到通道方法
   /// [name] 调用的方法名称
   /// [data] 返回的JSON数据
-  void onReviceMessageHandler(String message);
+  Future<ChannelData> onReviceMessageHandler(String message);
+
+  Future<ChannelData> readReviceData(ChannelData data,
+      {Duration timeout = const Duration(seconds: 60)});
 
   /// 添加对于APP调用的监听
   void addListenNativeCall(ReviceMessageChannel channel);

@@ -48,7 +48,11 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
       name: 'NativeChannelEngineMixin',
     );
     final channels = callMessageChannels
-        .where((element) => element.id == data.id && element.name == data.name)
+        .where((element) =>
+            element.id == data.id &&
+            element.name == data.name &&
+            element.libraryName == data.libraryName &&
+            element.className == data.className)
         .toList();
     if (channels.isEmpty) {
       throw 'class:${data.className}, name:${data.name} 没有注册';
@@ -59,8 +63,14 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   }
 
   @override
-  void onReviceMessageHandler(String message) async {
+  Future<ChannelData> onReviceMessageHandler(String message) async {
     final ChannelData data = ChannelData.fromJson(json.decode(message));
+    return await readReviceData(data);
+  }
+
+  @override
+  Future<ChannelData> readReviceData(ChannelData data,
+      {Duration timeout = const Duration(seconds: 60)}) async {
     developer.log(
       'onReviceMessageHandler: ${data.name}, $data',
       name: 'NativeChannelEngineMixin',
@@ -74,16 +84,8 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
     }
     final channel = channels.last;
     channel.onHandlerMessage(data);
-    channel.value.then((value) {
-      if (_messageEngine == null) throw '请先调用register方法';
-      _messageEngine!.responseMessage(
-        ChannelData(
-          data.name,
-          id: data.id,
-          data: value,
-          className: data.className,
-        ),
-      );
+    return await channel.value.timeout(timeout, onTimeout: () {
+      throw Exception('call ${data.name}(${data.id}) timeout');
     });
   }
 
