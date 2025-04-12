@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:petrel/src/define.dart';
-
+import 'package:petrel/src/future_timeout.dart';
 import 'call_message_channel.dart';
 import 'channel_data.dart';
 import 'message_engine.dart';
@@ -11,8 +10,6 @@ import 'revice_message_channel.dart';
 abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   List<ReviceMessageChannel> reviceMessageChannels = [];
   List<CallMessageChannel> callMessageChannels = [];
-  Map<String, NativeCallWebHandler> nativeCallWebHandlers = {};
-  Map<String, WebCallNativeHandler> webCallNativeHandlers = {};
   MessageEngine? _messageEngine;
 
   @override
@@ -21,30 +18,47 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   }
 
   @override
-  Future<T?> call<T>(
-    CallMessageChannel channel, [
-    bool needReturn = false,
-    Duration timeout = const Duration(seconds: 60),
-  ]) async {
-    if (_messageEngine == null) throw '请先调用register方法';
-    _messageEngine!.sendMessage(channel);
-    if (!needReturn) return null;
-    callMessageChannels.add(channel);
-    final value = await channel.value.timeout(timeout, onTimeout: () {
-      throw Exception('call ${channel.name}(${channel.id}) timeout');
-    });
-    developer.log(
-      'call ${channel.name}(${channel.id}): $value',
-      name: 'NativeChannelEngineMixin',
+  Future<T> call<T>(CallMessageChannel channel) async {
+    final callChannelData = ChannelData(
+      channel.name,
+      id: channel.id,
+      data: channel.arguments,
+      className: channel.className,
+      libraryName: channel.libraryName,
+      timeoutSeconds: channel.timeoutSeconds,
     );
-    return value as T;
+
+    final timeout = Duration(seconds: channel.timeoutSeconds);
+
+    /// 优先从当前进程的注册通道查找 为了解决Flutter web再开发中可能无法调用App通道的方法
+    final reviceMessageChannel = getReviceMessageChannel(callChannelData);
+    if (reviceMessageChannel != null) {
+      /// 如果当前进程查找到注册通道则调用返回
+      await reviceMessageChannel.onHandlerMessage(callChannelData);
+      return await reviceMessageChannel.value.addTimeout(
+        timeout,
+        onTimeout: () {
+          throw Exception('call ${channel.name}(${channel.id}) timeout');
+        },
+      );
+    } else {
+      if (_messageEngine == null) throw '请先调用register方法';
+      _messageEngine!.sendMessage(channel);
+      final value = await channel.value.timeout(timeout, onTimeout: () {
+        throw Exception('call ${channel.name}(${channel.id}) timeout');
+      });
+      developer.log(
+        'call ${channel.name}(${channel.id}): $value',
+        name: 'NativeChannelEngineMixin',
+      );
+      return value as T;
+    }
   }
 
   @override
-  Future<void> onReviceCallBackMessageHandler(String message) async {
-    final ChannelData data = ChannelData.fromJson(json.decode(message));
+  Future<void> onReviceCallBackMessageHandler(ChannelData data) async {
     developer.log(
-      'onReviceCallBackMessageHandler: ${data.name}, $data',
+      'onReviceCallBackMessageHandler:libraryName ${data.libraryName}, className ${data.className}, name ${data.name}, ${data.data}',
       name: 'NativeChannelEngineMixin',
     );
     final channels = callMessageChannels
@@ -55,7 +69,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
             element.className == data.className)
         .toList();
     if (channels.isEmpty) {
-      throw 'class:${data.className}, name:${data.name} 没有注册';
+      throw 'libraryName:${data.libraryName}, className:${data.className}, name:${data.name} id:${data.id} 没有注册';
     }
     final channel = channels.last;
     await channel.onHandlerMessage(data);
@@ -63,8 +77,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   }
 
   @override
-  Future<ChannelData> onReviceMessageHandler(String message) async {
-    final ChannelData data = ChannelData.fromJson(json.decode(message));
+  Future<ChannelData> onReviceMessageHandler(ChannelData data) async {
     return await readReviceData(data);
   }
 
@@ -87,6 +100,18 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
     return await channel.value.timeout(timeout, onTimeout: () {
       throw Exception('call ${data.name}(${data.id}) timeout');
     });
+  }
+
+  ReviceMessageChannel? getReviceMessageChannel(ChannelData data) {
+    final channels = reviceMessageChannels
+        .where(
+          (element) =>
+              element.name == data.name &&
+              element.className == data.className &&
+              element.libraryName == data.libraryName,
+        )
+        .toList();
+    return channels.lastOrNull;
   }
 
   @override

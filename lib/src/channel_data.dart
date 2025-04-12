@@ -3,6 +3,7 @@ class ChannelData<T> {
   final String? className;
   final String? libraryName;
   final String name;
+  final int timeoutSeconds;
   final T? data;
 
   const ChannelData(
@@ -11,6 +12,7 @@ class ChannelData<T> {
     this.className,
     this.libraryName,
     this.data,
+    this.timeoutSeconds = 60,
   });
 
   factory ChannelData.fromJson(Map<String, dynamic> json) => ChannelData(
@@ -19,6 +21,7 @@ class ChannelData<T> {
         className: json['className'],
         libraryName: json['libraryName'],
         data: json['data'],
+        timeoutSeconds: json['timeoutSeconds'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -27,5 +30,6 @@ class ChannelData<T> {
         'libraryName': libraryName,
         'data': data,
         'name': name,
+        'timeoutSeconds': timeoutSeconds,
       };
 }

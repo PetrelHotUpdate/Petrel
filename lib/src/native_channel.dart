@@ -18,6 +18,9 @@ abstract class NativeChannel<T> {
   /// 接受到方法返回回调
   final ReviceMessageChannelHandler<T>? onHandler;
 
+  /// 超时时间
+  final int timeoutSeconds;
+
   final Completer<T> _completer = Completer<T>();
   Future<T> get value => _completer.future;
 
@@ -27,6 +30,7 @@ abstract class NativeChannel<T> {
     this.className,
     this.libraryName,
     this.arguments,
+    this.timeoutSeconds = 60,
   });
 
   /// 当前方法返回的信息

@@ -4,7 +4,6 @@ import 'native_channel.dart';
 
 /// 等待接受消息的处理通道
 class ReviceMessageChannel<T> extends NativeChannel<T> {
-  final bool isWeb;
   final ReviceMessageChannelHandler<T> onReviceMessageHandler;
 
   ReviceMessageChannel(
@@ -12,7 +11,6 @@ class ReviceMessageChannel<T> extends NativeChannel<T> {
     required this.onReviceMessageHandler,
     super.className,
     super.libraryName,
-    this.isWeb = false,
   });
 
   @override

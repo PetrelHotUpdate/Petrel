@@ -6,8 +6,10 @@ class CallMessageChannel extends NativeChannel<ChannelData> {
   final String id;
   CallMessageChannel(
     super.name, {
+    super.libraryName,
     super.className,
     super.arguments,
+    super.timeoutSeconds,
   }) : id = DateTime.now().millisecondsSinceEpoch.toString();
 
   @override
