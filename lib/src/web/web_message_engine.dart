@@ -12,11 +12,10 @@ import '../message_engine.dart';
 class WebMessageEngine extends MessageEngine {
   @override
   void responseMessage(ChannelData response) {
-    throw UnimplementedError();
-    // _postMessage(
-    //   nativeCallWebHandlerName,
-    //   response.toJson(),
-    // );
+    _postMessage(
+      nativeCallWebHandlerName,
+      response.toJson(),
+    );
   }
 
   @override
@@ -29,6 +28,7 @@ class WebMessageEngine extends MessageEngine {
         className: message.className,
         libraryName: message.libraryName,
         data: message.arguments,
+        timeoutSeconds: message.timeoutSeconds,
       ).toJson(),
     );
   }

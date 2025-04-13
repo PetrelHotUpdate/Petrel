@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'channel_data.dart';
 
 const nativeCallWebName = 'NativeCallWeb';

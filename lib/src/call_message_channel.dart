@@ -14,6 +14,9 @@ class CallMessageChannel extends NativeChannel<ChannelData> {
 
   @override
   Future onHandlerMessage(ChannelData data) async {
-    complete(data.id == id ? data.data : null);
+    if (data.id != id) {
+      throw 'channel id not match: $id != ${data.id}';
+    }
+    complete(data.data);
   }
 }
