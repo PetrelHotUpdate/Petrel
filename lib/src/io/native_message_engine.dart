@@ -1,5 +1,4 @@
 import 'package:petrel/petrel.dart';
-import '../io/web_view_engine.dart';
 
 class NativeMessageEngine extends MessageEngine {
   final WebViewEngine webViewEngine;
