@@ -13,3 +13,4 @@ export './src/message_engine.dart'
     if (dart.library.html) './src/web/web_message_engine.dart'
     if (dart.library.io) './src/io/native_message_engine.dart';
 export './src/io/web_view_engine.dart';
+export './src/register/petrel_register.dart';

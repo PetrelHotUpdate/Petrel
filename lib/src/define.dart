@@ -6,7 +6,7 @@ const nativeCallWebHandlerName = 'NativeCallWebHandler';
 const webCallNativeName = 'WebCallNative';
 const webCallNativeHandlerName = 'WebCallNativeHandler';
 
-typedef ReviceMessageChannelHandler<T> = Future<T?> Function(ChannelData data);
+typedef ReviceMessageChannelHandler<T> = Future<T> Function(ChannelData data);
 typedef NativeCallWebHandler = void Function(ChannelData data);
 typedef WebCallNativeHandler = void Function(ChannelData data);
 
