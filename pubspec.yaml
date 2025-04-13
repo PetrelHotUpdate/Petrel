@@ -1,21 +1,7 @@
 name: petrel
 description: "海燕热更新框架"
 version: 0.0.1
-# homepage:
+homepage: https://github.com/PetrelHotUpdate/Petrel
 
 environment:
-  sdk: ">=3.3.4 <4.0.0"
-  flutter: ">=1.17.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-  web: ^1.1.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^3.0.0
-
-# platforms:
-#   web:
+  sdk: ">=3.5.4 <4.0.0"
