@@ -1,4 +1,7 @@
-import 'package:petrel/petrel.dart';
+import '../call_message_channel.dart';
+import '../define.dart';
+import '../native_channel_engine.dart';
+import '../revice_message_channel.dart';
 
 abstract class PetrelRegister {
   String get libraryName;

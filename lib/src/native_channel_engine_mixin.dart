@@ -1,6 +1,12 @@
 import 'dart:developer' as developer;
-import 'package:petrel/petrel.dart';
 import 'package:petrel/src/future_timeout.dart';
+
+import 'call_message_channel.dart';
+import 'channel_data.dart';
+import 'message_engine.dart';
+import 'native_channel_engine.dart';
+import 'register/petrel_register.dart';
+import 'revice_message_channel.dart';
 
 abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   List<ReviceMessageChannel> reviceMessageChannels = [];

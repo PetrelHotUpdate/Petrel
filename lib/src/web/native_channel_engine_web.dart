@@ -1,7 +1,9 @@
 import 'dart:developer' as developer;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
-import 'package:petrel/petrel.dart';
+import 'package:petrel/src/define.dart';
+import 'package:petrel/src/message_engine.dart';
+import 'package:petrel/src/native_channel_engine.dart';
 import 'package:petrel/src/native_channel_engine_mixin.dart';
 
 NativeChannelEngine createChannelEngine() => NativeChannelEngineWeb();

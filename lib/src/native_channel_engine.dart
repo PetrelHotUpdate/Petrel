@@ -1,5 +1,9 @@
-import 'package:petrel/petrel.dart';
 import './io/native_channel_engine_io.dart';
+import 'call_message_channel.dart';
+import 'channel_data.dart';
+import 'message_engine.dart';
+import 'register/petrel_register.dart';
+import 'revice_message_channel.dart';
 
 final nativeChannelEngine = NativeChannelEngine();
 

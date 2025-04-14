@@ -1,4 +1,8 @@
-import 'package:petrel/petrel.dart';
+import '../call_message_channel.dart';
+import '../channel_data.dart';
+import '../define.dart';
+import '../message_engine.dart';
+import 'web_view_engine.dart';
 
 class NativeMessageEngine extends MessageEngine {
   final WebViewEngine webViewEngine;
