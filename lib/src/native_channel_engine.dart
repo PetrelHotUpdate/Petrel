@@ -29,4 +29,7 @@ abstract class NativeChannelEngine {
     required String engineName,
     required MessageEngine messageEngine,
   });
+
+  void addRegister<T extends PetrelRegister>(T register);
+  T getRegister<T extends PetrelRegister>();
 }

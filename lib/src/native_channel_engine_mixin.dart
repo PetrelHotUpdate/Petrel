@@ -1,17 +1,13 @@
 import 'dart:developer' as developer;
+import 'package:petrel/petrel.dart';
 import 'package:petrel/src/future_timeout.dart';
-import 'call_message_channel.dart';
-import 'channel_data.dart';
-import 'message_engine.dart';
-import 'native_channel_engine.dart';
-import 'revice_message_channel.dart';
 
 abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   List<ReviceMessageChannel> reviceMessageChannels = [];
   final List<CallMessageChannel> _callMessageChannels = [];
   String? _engineName;
   MessageEngine? _messageEngine;
-
+  List<PetrelRegister> _petrelRegisters = [];
   MessageEngine get messageEngine {
     if (_messageEngine == null) throw '请先调用initEngine方法';
     return _messageEngine!;
@@ -155,5 +151,23 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
         element.name == channel.name &&
         element.className == channel.className &&
         element.libraryName == channel.libraryName);
+  }
+
+  @override
+  void addRegister<T extends PetrelRegister>(T register) {
+    final oldRegister = _petrelRegisters.whereType<T>().firstOrNull;
+    if (oldRegister != null) {
+      throw 'register already exists: ${oldRegister.libraryName} ${oldRegister.className}';
+    }
+    _petrelRegisters.add(register);
+  }
+
+  @override
+  T getRegister<T extends PetrelRegister>() {
+    final register = _petrelRegisters.whereType<T>().firstOrNull;
+    if (register == null) {
+      throw '请先通过addRegister进行注册';
+    }
+    return register;
   }
 }

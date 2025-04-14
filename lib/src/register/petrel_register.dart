@@ -17,4 +17,15 @@ abstract class PetrelRegister {
       ),
     );
   }
+
+  Future<T> call<T>(String name, Map<String, dynamic> arguments) {
+    return nativeChannelEngine.call(
+      CallMessageChannel(
+        name,
+        libraryName: libraryName,
+        className: className,
+        arguments: arguments,
+      ),
+    );
+  }
 }
