@@ -1,6 +1,6 @@
 name: petrel
 description: "海燕热更新框架"
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/PetrelHotUpdate/Petrel
 
 environment:
