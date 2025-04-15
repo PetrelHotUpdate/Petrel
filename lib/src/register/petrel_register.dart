@@ -7,9 +7,9 @@ abstract class PetrelRegister {
   String get libraryName;
   String get className;
 
-  void register<T>(
+  void register(
     String name,
-    ReviceMessageChannelHandler<T> onReviceMessageHandler,
+    ReviceMessageChannelHandler onReviceMessageHandler,
   ) {
     nativeChannelEngine.addListenNativeCall(
       ReviceMessageChannel(
@@ -21,7 +21,7 @@ abstract class PetrelRegister {
     );
   }
 
-  Future<T> call<T>(String name, Map<String, dynamic> arguments) {
+  Future<NativeChannelData> call(String name, Map<String, dynamic> arguments) {
     return nativeChannelEngine.call(
       CallMessageChannel(
         name,

@@ -1,8 +1,9 @@
 import 'dart:async';
 import '../petrel.dart';
+import 'native_channel_object.dart';
 
 /// 负责Flutter Web和App进行交互
-abstract class NativeChannel<T> {
+abstract class NativeChannel {
   /// 交互方法名称
   final String name;
 
@@ -13,30 +14,27 @@ abstract class NativeChannel<T> {
   final String? libraryName;
 
   /// 调用的参数
-  final dynamic arguments;
-
-  /// 接受到方法返回回调
-  final ReviceMessageChannelHandler<T>? onHandler;
+  // final dynamic arguments;
 
   /// 超时时间
-  final int timeoutSeconds;
+  // final int timeoutSeconds;
 
-  final Completer<T> _completer = Completer<T>();
-  Future<T> get value => _completer.future;
+  final Completer<NativeChannelData> _completer =
+      Completer<NativeChannelData>();
+  Future<NativeChannelData> get value => _completer.future;
 
   NativeChannel(
     this.name, {
-    this.onHandler,
     this.className,
     this.libraryName,
-    this.arguments,
-    this.timeoutSeconds = 60,
+    // this.arguments,
+    // this.timeoutSeconds = 60,
   });
 
   /// 当前方法返回的信息
   Future onHandlerMessage(ChannelData data);
 
-  void complete(T? value) {
+  void complete(NativeChannelData value) {
     _completer.complete(value);
   }
 }

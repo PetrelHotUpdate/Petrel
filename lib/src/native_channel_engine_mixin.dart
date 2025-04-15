@@ -3,6 +3,7 @@ import 'package:petrel/src/future_timeout.dart';
 
 import 'call_message_channel.dart';
 import 'channel_data.dart';
+import 'define.dart';
 import 'message_engine.dart';
 import 'native_channel_engine.dart';
 import 'register/petrel_register.dart';
@@ -34,7 +35,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   }
 
   @override
-  Future<T> call<T>(CallMessageChannel channel) async {
+  Future<NativeChannelData> call(CallMessageChannel channel) async {
     developer.log(
       'call: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]',
       name: 'NativeChannelEngineMixin',
@@ -70,7 +71,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
         'call: (${channel.id}) native revice channel value $value',
         name: 'NativeChannelEngineMixin',
       );
-      return value as T;
+      return value;
     } else {
       developer.log(
         'call: (${channel.id}) other process channel',
@@ -87,7 +88,7 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
         'call (${channel.id}) other process channel value $value',
         name: 'NativeChannelEngineMixin',
       );
-      return value as T;
+      return value;
     }
   }
 

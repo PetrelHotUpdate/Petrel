@@ -1,17 +1,21 @@
-class ChannelData<T> {
+import 'package:petrel/src/native_channel_object.dart';
+
+import 'define.dart';
+
+class ChannelData {
   final String? id;
   final String? className;
   final String? libraryName;
   final String name;
   final int timeoutSeconds;
-  final T? data;
+  final NativeChannelData data;
 
   const ChannelData(
     this.name, {
     this.id,
     this.className,
     this.libraryName,
-    this.data,
+    this.data = const {},
     this.timeoutSeconds = 60,
   });
 

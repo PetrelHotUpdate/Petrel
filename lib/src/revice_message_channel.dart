@@ -3,8 +3,8 @@ import 'define.dart';
 import 'native_channel.dart';
 
 /// 等待接受消息的处理通道
-class ReviceMessageChannel<T> extends NativeChannel<T> {
-  final ReviceMessageChannelHandler<T> onReviceMessageHandler;
+class ReviceMessageChannel extends NativeChannel {
+  final ReviceMessageChannelHandler onReviceMessageHandler;
 
   ReviceMessageChannel(
     super.name, {
@@ -17,8 +17,8 @@ class ReviceMessageChannel<T> extends NativeChannel<T> {
   Future onHandlerMessage(ChannelData data) async {
     final value = await onReviceMessageHandler
         .call(data)
-        .then<T?>((e) => e)
-        .catchError((e) => null);
+        .then<NativeChannelData>((e) => e)
+        .catchError((e) => <String, dynamic>{});
     complete(value);
   }
 }
