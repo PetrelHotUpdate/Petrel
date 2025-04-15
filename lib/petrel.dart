@@ -11,3 +11,4 @@ export 'src/io/native_channel_engine_io.dart'
 export './src/io/web_view_engine.dart';
 export './src/register/petrel_register.dart';
 export './src/native_channel_engine.dart';
+export './src/native_channel_object.dart';
