@@ -1,4 +1,3 @@
-import 'package:petrel/src/native_channel_object.dart';
 
 import 'define.dart';
 
