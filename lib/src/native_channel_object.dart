@@ -21,8 +21,12 @@ class NativeChannelObjectList<T extends NativeChannelObject>
 
   factory NativeChannelObjectList.fromJson(Map<String, dynamic> json,
       T Function(Map<String, dynamic> json) fromJson) {
-    return NativeChannelObjectList<T>(
-        json['value'].map((e) => fromJson(e)).toList());
+    final value = json['value'] as List<dynamic>;
+    final objectList = value.map((e) {
+      final object = fromJson(e);
+      return object;
+    }).toList();
+    return NativeChannelObjectList<T>(objectList);
   }
 
   @override
