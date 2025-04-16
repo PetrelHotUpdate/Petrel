@@ -12,22 +12,16 @@ abstract class NativeChannel {
   /// 调用的库名
   final String? libraryName;
 
-  /// 调用的参数
-  // final dynamic arguments;
-
-  /// 超时时间
-  // final int timeoutSeconds;
-
-  final Completer<NativeChannelData> _completer =
-      Completer<NativeChannelData>();
-  Future<NativeChannelData> get value => _completer.future;
+  Completer<NativeChannelData> _completer = Completer<NativeChannelData>();
+  Future<NativeChannelData> get value => _completer.future.then((e) {
+        _completer = Completer<NativeChannelData>();
+        return e;
+      });
 
   NativeChannel(
     this.name, {
     this.className,
     this.libraryName,
-    // this.arguments,
-    // this.timeoutSeconds = 60,
   });
 
   /// 当前方法返回的信息
