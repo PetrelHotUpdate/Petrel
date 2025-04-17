@@ -1,44 +1,39 @@
-import 'dart:developer' as developer;
+import 'dart:convert';
+
+import 'package:petrel/petrel.dart';
 import 'package:petrel/src/future_timeout.dart';
 
-import 'call_message_channel.dart';
-import 'channel_data.dart';
-import 'define.dart';
-import 'message_engine.dart';
-import 'native_channel_engine.dart';
-import 'register/petrel_register.dart';
-import 'revice_message_channel.dart';
-
-abstract class NativeChannelEngineMixin implements NativeChannelEngine {
-  List<ReviceMessageChannel> reviceMessageChannels = [];
+abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
+  List<ReceiveMessageChannel> ReceiveMessageChannels = [];
   final List<CallMessageChannel> _callMessageChannels = [];
-  String? _engineName;
   MessageEngine? _messageEngine;
-  List<PetrelRegister> _petrelRegisters = [];
-  MessageEngine get messageEngine {
-    if (_messageEngine == null) throw '请先调用initEngine方法';
+  RegisterCenter? _registerCenter;
+  RegisterCenter get registerCenter {
+    if (_registerCenter == null) throw '请先调用initEngine方法';
+    return _registerCenter!;
+  }
+
+  MessageEngine? get messageEngine {
+    if (_messageEngine == null) throw '请先调用initEngineWithMessageEngine方法';
     return _messageEngine!;
   }
 
-  String get engineName {
-    if (_engineName == null) throw '请先调用initEngine方法';
-    return _engineName!;
+  void initEngine({required RegisterCenter registerCenter}) {
+    logger.i('正在初始化注册中心...RegisterCenter(${identityHashCode(registerCenter)})');
+    _registerCenter = registerCenter;
+    logger.i('正在初始化计划默认的消息引擎');
+    initEngineWithMessageEngine(messageEngine: MessageEngine());
   }
 
-  @override
-  void initEngine({
-    required String engineName,
-    required MessageEngine messageEngine,
-  }) {
-    _engineName = engineName;
+  void initEngineWithMessageEngine({required MessageEngine messageEngine}) {
     _messageEngine = messageEngine;
+    messageEngine.initMessageEngine();
   }
 
   @override
   Future<NativeChannelData> call(CallMessageChannel channel) async {
-    developer.log(
+    logger.i(
       'call: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]',
-      name: 'NativeChannelEngineMixin',
     );
     final callChannelData = ChannelData(
       channel.name,
@@ -52,31 +47,22 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
     final timeout = Duration(seconds: channel.timeoutSeconds);
 
     /// 优先从当前进程的注册通道查找 为了解决Flutter web再开发中可能无法调用App通道的方法
-    final reviceMessageChannel = getReviceMessageChannel(callChannelData);
-    if (reviceMessageChannel != null) {
-      developer.log(
-        'call: (${channel.id}) native revice channel',
-        name: 'NativeChannelEngineMixin',
-      );
+    final ReceiveMessageChannel = getReceiveMessageChannel(callChannelData);
+    if (ReceiveMessageChannel != null) {
+      logger.i('call: (${channel.id}) native Receive channel');
 
       /// 如果当前进程查找到注册通道则调用返回
-      await reviceMessageChannel.onHandlerMessage(callChannelData);
-      final value = await reviceMessageChannel.value.addTimeout(
+      await ReceiveMessageChannel.onHandlerMessage(callChannelData);
+      final value = await ReceiveMessageChannel.value.addTimeout(
         timeout,
         onTimeout: () {
           throw Exception('call ${channel.name}(${channel.id}) timeout');
         },
       );
-      developer.log(
-        'call: (${channel.id}) native revice channel value $value',
-        name: 'NativeChannelEngineMixin',
-      );
+      logger.i('call: (${channel.id}) native Receive channel value $value');
       return value;
     } else {
-      developer.log(
-        'call: (${channel.id}) other process channel',
-        name: 'NativeChannelEngineMixin',
-      );
+      logger.i('call: (${channel.id}) other process channel');
       if (_messageEngine == null) throw '请先调用register方法';
       _callMessageChannels.add(channel);
       _messageEngine!.sendMessage(channel);
@@ -84,20 +70,15 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
         throw Exception('call ${channel.name}(${channel.id}) timeout');
       });
       _callMessageChannels.remove(channel);
-      developer.log(
-        'call (${channel.id}) other process channel value $value',
-        name: 'NativeChannelEngineMixin',
-      );
+      logger.i('call (${channel.id}) other process channel value $value');
       return value;
     }
   }
 
   @override
-  Future<void> onReviceCallBackMessageHandler(ChannelData data) async {
-    developer.log(
-      'onReviceCallBackMessageHandler:(${data.id}) [${data.libraryName}] [${data.className}] [${data.name}]',
-      name: 'NativeChannelEngineMixin',
-    );
+  Future<void> onReceiveCallBackMessageHandler(String message) async {
+    logger.i('onReceiveCallBackMessageHandler:$message');
+    final data = ChannelData.fromJson(jsonDecode(message));
     final channels = _callMessageChannels
         .where((element) =>
             element.id == data.id &&
@@ -113,67 +94,65 @@ abstract class NativeChannelEngineMixin implements NativeChannelEngine {
   }
 
   @override
-  Future<void> onReviceMessageHandler(ChannelData data) async {
-    final channelData = await readReviceData(data);
+  Future<void> onReceiveMessageHandler(String message) async {
+    final data = ChannelData.fromJson(jsonDecode(message));
+    final channelData = await readReceiveData(data);
     if (_messageEngine == null) throw '请先调用register方法';
-    _messageEngine!.responseMessage(channelData);
+    _messageEngine!.responseMessage(ChannelData(
+      data.name,
+      id: data.id,
+      className: data.className,
+      libraryName: data.libraryName,
+      data: channelData,
+      timeoutSeconds: data.timeoutSeconds,
+    ));
   }
 
-  Future<ChannelData> readReviceData(ChannelData data,
+  Future<NativeChannelData> readReceiveData(ChannelData data,
       {Duration timeout = const Duration(seconds: 60)}) async {
-    developer.log(
-      'readReviceData: (${data.id}) [${data.libraryName}] [${data.className}] [${data.name}]',
-      name: 'NativeChannelEngineMixin',
+    logger.i(
+      'readReceiveData: ${jsonEncode(data.toJson())}',
     );
-    final channel = getReviceMessageChannel(data);
+    final channel = getReceiveMessageChannel(data);
     if (channel == null) {
       throw 'channel not found: (${data.id}) [${data.libraryName}] [${data.className}] [${data.name}]';
     }
     await channel.onHandlerMessage(data);
-    return await channel.value.addTimeout(timeout, onTimeout: () {
+    NativeChannelData value =
+        await channel.value.addTimeout(timeout, onTimeout: () {
       throw Exception('call ${data.name}(${data.id}) timeout');
     });
+    return value;
   }
 
-  ReviceMessageChannel? getReviceMessageChannel(ChannelData data) {
-    final channels = reviceMessageChannels
-        .where(
-          (element) =>
-              element.name == data.name &&
-              element.className == data.className &&
-              element.libraryName == data.libraryName,
-        )
-        .toList();
+  ReceiveMessageChannel? getReceiveMessageChannel(ChannelData data) {
+    final channels = ReceiveMessageChannels.where(
+      (element) =>
+          element.name == data.name &&
+          element.className == data.className &&
+          element.libraryName == data.libraryName,
+    ).toList();
     return channels.lastOrNull;
   }
 
   @override
-  void addListenNativeCall(ReviceMessageChannel channel) {
-    reviceMessageChannels.add(channel);
+  void addListenNativeCall(ReceiveMessageChannel channel) {
+    ReceiveMessageChannels.add(channel);
   }
 
   @override
-  void removeListenNativeCall(ReviceMessageChannel channel) {
-    reviceMessageChannels.removeWhere((element) =>
+  void removeListenNativeCall(ReceiveMessageChannel channel) {
+    ReceiveMessageChannels.removeWhere((element) =>
         element.name == channel.name &&
         element.className == channel.className &&
         element.libraryName == channel.libraryName);
   }
 
   @override
-  void addRegister<T extends PetrelRegister>(T register) {
-    final oldRegister = _petrelRegisters.whereType<T>().firstOrNull;
-    if (oldRegister != null) {
-      throw 'register already exists: ${oldRegister.libraryName} ${oldRegister.className}';
-    }
-    _petrelRegisters.add(register);
-  }
-
-  @override
   T getRegister<T extends PetrelRegister>() {
-    final register = _petrelRegisters.whereType<T>().firstOrNull;
+    final register = registerCenter.registers.whereType<T>().firstOrNull;
     if (register == null) {
-      throw '请先通过addRegister进行注册';
+      throw '请先通过addRegister进行注册:${T.toString()}';
     }
     return register;
   }

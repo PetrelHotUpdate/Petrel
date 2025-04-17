@@ -1,13 +1,20 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
+
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
-import 'package:petrel/src/channel_data.dart';
-import '../call_message_channel.dart';
-import '../define.dart';
-import '../message_engine.dart';
+import 'package:petrel/petrel.dart';
 
-class WebMessageEngine extends MessageEngine {
+class MessageEngine extends MessageEnginePlatform {
+  MessageEngine([WebViewEngine webViewEngine = const DefaultWebViewEngine()])
+      : super(webViewEngine);
+
+  @override
+  void initMessageEngine() {
+    js.context[webCallNativeHandlerName] =
+        nativeChannelEngine.onReceiveCallBackMessageHandler;
+    js.context[nativeCallWebName] = nativeChannelEngine.onReceiveMessageHandler;
+  }
+
   @override
   void responseMessage(ChannelData response) {
     _postMessage(
@@ -33,10 +40,13 @@ class WebMessageEngine extends MessageEngine {
 
   void _postMessage(String method, Map data) {
     final jsonText = json.encode(data);
-    developer.log(
-      '_postMessage method: $method, data: $jsonText',
-      name: 'WebMessageEngine',
-    );
-    js.context[method].callMethod("postMessage", [jsonText]);
+    logger.i('_postMessage method: $method, data: $jsonText');
+    var target = js.context[method];
+    logger.i('target: $target');
+    if (target != null) {
+      target.callMethod("postMessage", [jsonText]);
+    } else {
+      logger.e('The object for method $method is null.');
+    }
   }
 }

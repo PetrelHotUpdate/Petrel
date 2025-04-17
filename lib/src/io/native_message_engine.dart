@@ -1,12 +1,10 @@
-import '../call_message_channel.dart';
-import '../channel_data.dart';
-import '../define.dart';
-import '../message_engine.dart';
-import 'web_view_engine.dart';
+import 'package:petrel/petrel.dart';
 
-class NativeMessageEngine extends MessageEngine {
-  final WebViewEngine webViewEngine;
-  NativeMessageEngine({required this.webViewEngine});
+class MessageEngine extends MessageEnginePlatform {
+  MessageEngine([WebViewEngine webViewEngine = const DefaultWebViewEngine()])
+      : super(webViewEngine);
+  @override
+  void initMessageEngine() {}
   @override
   Future<void> sendMessage(CallMessageChannel message) async {
     final channelData = ChannelData(

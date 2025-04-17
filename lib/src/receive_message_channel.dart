@@ -1,21 +1,19 @@
-import 'channel_data.dart';
-import 'define.dart';
-import 'native_channel.dart';
+import 'package:petrel/petrel.dart';
 
 /// 等待接受消息的处理通道
-class ReviceMessageChannel extends NativeChannel {
-  final ReviceMessageChannelHandler onReviceMessageHandler;
+class ReceiveMessageChannel extends NativeChannel {
+  final ReceiveMessageChannelHandler onReceiveMessageHandler;
 
-  ReviceMessageChannel(
+  ReceiveMessageChannel(
     super.name, {
-    required this.onReviceMessageHandler,
+    required this.onReceiveMessageHandler,
     super.className,
     super.libraryName,
   });
 
   @override
   Future onHandlerMessage(ChannelData data) async {
-    final value = await onReviceMessageHandler
+    final value = await onReceiveMessageHandler
         .call(data)
         .then<NativeChannelData>((e) => e)
         .catchError((e) => <String, dynamic>{});

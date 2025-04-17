@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../petrel.dart';
+import 'package:petrel/petrel.dart';
 
 /// 负责Flutter Web和App进行交互
 abstract class NativeChannel {
