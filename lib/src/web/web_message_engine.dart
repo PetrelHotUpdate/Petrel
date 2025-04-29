@@ -40,9 +40,9 @@ class MessageEngine extends MessageEnginePlatform {
 
   void _postMessage(String method, Map data) {
     final jsonText = json.encode(data);
-    logger.i('_postMessage method: $method, data: $jsonText');
+    logger.d('_postMessage method: $method, data: $jsonText');
     var target = js.context[method];
-    logger.i('target: $target');
+    logger.d('target: $target');
     if (target != null) {
       target.callMethod("postMessage", [jsonText]);
     } else {

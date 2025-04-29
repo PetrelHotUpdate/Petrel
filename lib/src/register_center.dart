@@ -6,12 +6,12 @@ class RegisterCenter {
   RegisterCenter();
 
   void addRegister<T extends PetrelRegister>(T register) {
-    logger.i('正在添加注册器: ${T.toString()}');
+    logger.d('正在添加注册器: ${T.toString()}');
     _registers.add(register);
   }
 
   void removeRegister<T extends PetrelRegister>(T register) {
-    logger.i('正在移除注册器: ${T.toString()}');
+    logger.d('正在移除注册器: ${T.toString()}');
     _registers.remove(register);
   }
 }

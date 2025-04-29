@@ -9,7 +9,7 @@ class NativeChannelEngine extends NativeChannelEngineMixin
     implements NativeChannelEnginePlatform {
   @override
   void initEngine({required RegisterCenter registerCenter}) {
-    logger.i('register $webCallNativeHandlerName $nativeCallWebName');
+    logger.d('register $webCallNativeHandlerName $nativeCallWebName');
     super.initEngine(registerCenter: registerCenter);
   }
 }

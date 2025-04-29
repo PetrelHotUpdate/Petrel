@@ -19,9 +19,8 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
   }
 
   void initEngine({required RegisterCenter registerCenter}) {
-    logger.i('正在初始化注册中心...RegisterCenter(${identityHashCode(registerCenter)})');
     _registerCenter = registerCenter;
-    logger.i('正在初始化计划默认的消息引擎');
+    logger.d('正在初始化计划默认的消息引擎');
     initEngineWithMessageEngine(messageEngine: MessageEngine());
   }
 
@@ -32,8 +31,12 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
 
   @override
   Future<NativeChannelData> call(CallMessageChannel channel) async {
-    logger.i(
-      'call: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]',
+    logger.d(
+      '''
+[⚪️]call: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''',
     );
     final callChannelData = ChannelData(
       channel.name,
@@ -49,7 +52,11 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
     /// 优先从当前进程的注册通道查找 为了解决Flutter web再开发中可能无法调用App通道的方法
     final ReceiveMessageChannel = getReceiveMessageChannel(callChannelData);
     if (ReceiveMessageChannel != null) {
-      logger.i('call: (${channel.id}) native Receive channel');
+      logger.d('''
+[🟡]call receive channel: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''');
 
       /// 如果当前进程查找到注册通道则调用返回
       await ReceiveMessageChannel.onHandlerMessage(callChannelData);
@@ -59,10 +66,19 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
           throw Exception('call ${channel.name}(${channel.id}) timeout');
         },
       );
-      logger.i('call: (${channel.id}) native Receive channel value $value');
+      logger.d('''
+[✅]call receive channel value: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+value: $value
+''');
       return value;
     } else {
-      logger.i('call: (${channel.id}) other process channel');
+      logger.d('''
+[🟡]call other process channel: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''');
       if (_messageEngine == null) throw '请先调用register方法';
       _callMessageChannels.add(channel);
       _messageEngine!.sendMessage(channel);
@@ -70,14 +86,21 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
         throw Exception('call ${channel.name}(${channel.id}) timeout');
       });
       _callMessageChannels.remove(channel);
-      logger.i('call (${channel.id}) other process channel value $value');
+      logger.d('''
+[🟢]call other process channel value: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.name}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+value: $value
+''');
       return value;
     }
   }
 
   @override
   Future<void> onReceiveCallBackMessageHandler(String message) async {
-    logger.i('onReceiveCallBackMessageHandler:$message');
+    logger.d('''
+[🟡]onReceiveCallBackMessageHandler: $message
+''');
     final data = ChannelData.fromJson(jsonDecode(message));
     final channels = _callMessageChannels
         .where((element) =>
@@ -110,8 +133,8 @@ abstract class NativeChannelEngineMixin implements NativeChannelEnginePlatform {
 
   Future<NativeChannelData> readReceiveData(ChannelData data,
       {Duration timeout = const Duration(seconds: 60)}) async {
-    logger.i(
-      'readReceiveData: ${jsonEncode(data.toJson())}',
+    logger.d(
+      '[🟢]readReceiveData: ${jsonEncode(data.toJson())}',
     );
     final channel = getReceiveMessageChannel(data);
     if (channel == null) {
