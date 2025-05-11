@@ -1,25 +1,18 @@
-import 'channel_data.dart';
 import 'define.dart';
-import 'native_channel.dart';
 
 /// 主动调用的通道
-class CallMessageChannel extends NativeChannel {
+class CallMessageChannel {
   final String id;
+  final String functionName;
+  final String? libraryName;
+  final String? className;
   final NativeChannelData arguments;
   final int timeoutSeconds;
-  CallMessageChannel(
-    super.name, {
-    super.libraryName,
-    super.className,
+  CallMessageChannel({
+    required this.functionName,
     this.arguments = const {},
     this.timeoutSeconds = 60,
+    this.libraryName,
+    this.className,
   }) : id = DateTime.now().millisecondsSinceEpoch.toString();
-
-  @override
-  Future onHandlerMessage(ChannelData data) async {
-    if (data.id != id) {
-      throw 'channel id not match: $id != ${data.id}';
-    }
-    complete(data.data);
-  }
 }

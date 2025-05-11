@@ -28,7 +28,7 @@ class MessageEngine extends MessageEnginePlatform {
     _postMessage(
       webCallNativeName,
       ChannelData(
-        message.name,
+        message.functionName,
         id: message.id,
         className: message.className,
         libraryName: message.libraryName,

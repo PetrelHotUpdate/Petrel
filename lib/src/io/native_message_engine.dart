@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:petrel/petrel.dart';
 
 class MessageEngine extends MessageEnginePlatform {
@@ -8,7 +10,7 @@ class MessageEngine extends MessageEnginePlatform {
   @override
   Future<void> sendMessage(CallMessageChannel message) async {
     final channelData = ChannelData(
-      message.name,
+      message.functionName,
       id: message.id,
       className: message.className,
       libraryName: message.libraryName,

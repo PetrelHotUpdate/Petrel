@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'channel_data.dart';
+import 'package:petrel/petrel.dart';
 import 'package:logger/logger.dart';
 
 const nativeCallWebName = 'nativeCallWeb';

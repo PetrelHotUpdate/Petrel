@@ -1,16 +1,15 @@
-
 import 'define.dart';
 
 class ChannelData {
   final String? id;
-  final String? className;
   final String? libraryName;
-  final String name;
+  final String? className;
+  final String functionName;
   final int timeoutSeconds;
   final NativeChannelData data;
 
   const ChannelData(
-    this.name, {
+    this.functionName, {
     this.id,
     this.className,
     this.libraryName,
@@ -19,7 +18,7 @@ class ChannelData {
   });
 
   factory ChannelData.fromJson(Map<String, dynamic> json) => ChannelData(
-        json['name'],
+        json['functionName'],
         id: json['id'],
         className: json['className'],
         libraryName: json['libraryName'],
@@ -32,7 +31,7 @@ class ChannelData {
         'className': className,
         'libraryName': libraryName,
         'data': data,
-        'name': name,
+        'functionName': functionName,
         'timeoutSeconds': timeoutSeconds,
       };
 }

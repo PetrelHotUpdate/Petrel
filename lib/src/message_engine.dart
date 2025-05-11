@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'call_message_channel.dart';
 import 'channel_data.dart';
 import 'io/web_view_engine.dart';

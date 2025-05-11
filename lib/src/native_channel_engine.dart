@@ -1,31 +1,164 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:petrel/petrel.dart';
-export './io/native_channel_engine_io.dart'
-    if (dart.library.html) './web/native_channel_engine_web.dart';
+import 'package:petrel/src/future_timeout.dart';
 
 final nativeChannelEngine = NativeChannelEngine();
 
-abstract class NativeChannelEnginePlatform {
-  /// 调用通道方法 如果当前进程注册了通道则直接返回 否则发送消息到其他进程
-  /// [channel] 方法的参数
-  Future<NativeChannelData> call(CallMessageChannel channel);
+/// 通信引擎
+class NativeChannelEngine {
+  final List<ReceiveMessageChannel> _receiveMessageChannels = [];
+  final RegisterCenter _registerCenter = RegisterCenter();
+  MessageEngine _messageEngine = MessageEngine();
+  final Map<String, Completer<ChannelData>> _otherProcessChannelCompleters = {};
+  RegisterCenter get registerCenter => _registerCenter;
+  MessageEngine? get messageEngine => _messageEngine;
 
-  /// 收到调用其他进程回复数据的回调
-  /// [data] 返回的JSON数据
-  Future<void> onReceiveCallBackMessageHandler(String message);
+  void initEngine({MessageEngine? messageEngine}) {
+    initEngineWithMessageEngine(messageEngine ?? _messageEngine);
+  }
 
-  /// 接受到其他进程发送的消息
-  /// [data] 返回的JSON数据
-  Future<void> onReceiveMessageHandler(String message);
+  void initEngineWithMessageEngine(MessageEngine messageEngine) {
+    _messageEngine = messageEngine;
+    messageEngine.initMessageEngine();
+  }
 
-  /// 添加当前进程通道的监听
-  void addListenNativeCall(ReceiveMessageChannel channel);
+  Future<ChannelData> call(CallMessageChannel channel) async {
+    logger.d(
+      '''
+[⚪️]call: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.functionName}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''',
+    );
+    final callChannelData = ChannelData(
+      channel.functionName,
+      id: channel.id,
+      data: channel.arguments,
+      className: channel.className,
+      libraryName: channel.libraryName,
+      timeoutSeconds: channel.timeoutSeconds,
+    );
 
-  /// 移除当前进程通道的监听
-  void removeListenNativeCall(ReceiveMessageChannel channel);
+    final timeout = Duration(seconds: channel.timeoutSeconds);
 
-  /// 初始化引擎
-  void initEngine({required RegisterCenter registerCenter});
-  void initEngineWithMessageEngine({required MessageEngine messageEngine});
+    /// 优先从当前进程的注册通道查找 为了解决Flutter web再开发中可能无法调用App通道的方法
+    final receiveMessageChannel = getReceiveMessageChannel(callChannelData);
+    if (receiveMessageChannel != null) {
+      logger.d('''
+[🟡]call receive channel: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.functionName}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''');
 
-  T getRegister<T extends PetrelRegister>();
+      /// 如果当前进程查找到注册通道则调用返回
+      final value = await receiveMessageChannel
+          .onReceiveMessageHandler(callChannelData)
+          .addTimeout(
+        timeout,
+        onTimeout: () {
+          throw Exception(
+              'call [${callChannelData.libraryName}] [${callChannelData.className}] [${callChannelData.functionName}] timeout');
+        },
+      );
+      logger.d('''
+[✅]call receive channel value: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.functionName}]
+value: $value
+''');
+      return ChannelData(
+        channel.functionName,
+        id: channel.id,
+        data: value,
+        className: channel.className,
+        libraryName: channel.libraryName,
+        timeoutSeconds: channel.timeoutSeconds,
+      );
+    } else {
+      logger.d('''
+[🟡]call other process channel: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.functionName}]
+arguments: ${jsonEncode(channel.arguments)}
+timeoutSeconds: ${channel.timeoutSeconds}
+''');
+      final completer = Completer<ChannelData>();
+      _otherProcessChannelCompleters[channel.id] = completer;
+      _messageEngine.sendMessage(channel);
+      final value = await completer.future.addTimeout(timeout, onTimeout: () {
+        throw Exception(
+            'call ${channel.libraryName} ${channel.className} ${channel.functionName} timeout');
+      });
+      _otherProcessChannelCompleters.remove(channel.id);
+      logger.d('''
+[🟢]call other process channel value: (${channel.id}) [${channel.libraryName}] [${channel.className}] [${channel.functionName}]
+value: $value
+''');
+      return value;
+    }
+  }
+
+  Future<void> onReceiveCallBackMessageHandler(String message) async {
+    logger.d('''
+[🟡]onReceiveCallBackMessageHandler: $message
+''');
+    final data = ChannelData.fromJson(jsonDecode(message));
+    final completer = _otherProcessChannelCompleters[data.id];
+    if (completer == null) {
+      throw 'channel completer not found: (${data.id}) [${data.libraryName}] [${data.className}] [${data.functionName}]';
+    }
+    completer.complete(data);
+  }
+
+  Future<void> onReceiveMessageHandler(String message) async {
+    final data = ChannelData.fromJson(jsonDecode(message));
+    final channelData = await readReceiveData(data);
+    _messageEngine.responseMessage(channelData);
+  }
+
+  Future<ChannelData> readReceiveData(ChannelData data,
+      {Duration timeout = const Duration(seconds: 60)}) async {
+    logger.d(
+      '[🟢]readReceiveData: ${jsonEncode(data.toJson())}',
+    );
+    final channel = getReceiveMessageChannel(data);
+    if (channel == null) {
+      throw 'channel not found: (${data.id}) [${data.libraryName}] [${data.className}] [${data.functionName}]';
+    }
+    await channel.onReceiveMessageHandler(data);
+    final value = await channel
+        .onReceiveMessageHandler(data)
+        .addTimeout(timeout, onTimeout: () {
+      throw Exception('call ${data.functionName}(${data.id}) timeout');
+    });
+    return ChannelData(
+      data.functionName,
+      id: data.id,
+      data: value,
+      className: data.className,
+      libraryName: data.libraryName,
+      timeoutSeconds: data.timeoutSeconds,
+    );
+  }
+
+  ReceiveMessageChannel? getReceiveMessageChannel(ChannelData data) {
+    final channels = _receiveMessageChannels.where(
+      (element) {
+        return element.libraryName == data.libraryName &&
+            element.className == data.className &&
+            element.functionName == data.functionName;
+      },
+    ).toList();
+    return channels.lastOrNull;
+  }
+
+  void addReceiveMessageChannel(ReceiveMessageChannel channel) {
+    _receiveMessageChannels.add(channel);
+  }
+
+  T getRegister<T extends PetrelRegister>() {
+    final register = registerCenter.registers.whereType<T>().lastOrNull;
+    if (register == null) {
+      throw '请先通过addRegister进行注册:${T.toString()}';
+    }
+    return register;
+  }
 }
